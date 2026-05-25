@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>請求書 - Hearts House</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;font-size:13px;background:#dde1e7;color:#111;min-height:100vh}
+
+/* ── TOP BAR ── */
+#topbar{
+  background:#1e293b;color:#fff;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 16px;position:sticky;top:0;z-index:200;
+}
+#topbar-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.badge{width:28px;height:28px;background:#dc2626;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
+#topbar-btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:7px 14px;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;transition:.15s;white-space:nowrap}
+.btn-slate{background:#475569;color:#fff}.btn-slate:hover{background:#334155}
+.btn-blue {background:#2563eb;color:#fff}.btn-blue:hover {background:#1d4ed8}
+.btn-green{background:#16a34a;color:#fff}.btn-green:hover{background:#15803d}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* ── 印鑑透過パネル ── */
+#hanko-panel{display:none;background:#fff8f8;border-bottom:2px solid #fca5a5;padding:12px 16px;gap:10px;flex-direction:column}
+#hanko-panel.open{display:flex}
+.hanko-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hanko-dz{border:2px dashed #fca5a5;border-radius:8px;padding:14px;text-align:center;cursor:pointer;font-size:12px;color:#dc2626;background:#fff;min-width:160px;flex:1}
+.hanko-dz.over{background:#fde8e8}
+.hanko-canvas-wrap{background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/16px 16px;border-radius:6px;display:none;max-width:200px}
+.hanko-canvas-wrap canvas{display:block;max-width:100%;height:auto}
+.hanko-range-row{display:flex;align-items:center;gap:6px;font-size:11px}
+.hanko-range-row input[type=range]{flex:1;min-width:80px}
+
+/* ── EMAIL BAR ── */
+#email-bar{background:#f0fdf4;border-bottom:2px solid #86efac;padding:10px 16px;display:none;flex-direction:column;gap:6px;flex-wrap:wrap}
+
+/* ── EDIT PANEL ── */
+#edit-panel{max-width:920px;margin:0 auto;padding:14px 12px 40px}
+.card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.card-title{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.flex-row{display:flex;flex-wrap:wrap;gap:8px}
+.col{flex:1;min-width:130px}
+.col2{flex:2;min-width:200px}
+.lbl{font-size:10px;color:#64748b;display:block;margin-bottom:2px}
+input,select,textarea{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:5px 8px;font-size:11px;font-family:inherit;outline:none;transition:.15s;background:#fff;color:#111}
+input:focus,select:focus,textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+textarea{resize:vertical}
+.edit-link{font-size:11px;color:#2563eb;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.info-display{font-size:11px;line-height:1.9;color:#334155}
+.info-name{font-weight:700;font-size:13px;margin-bottom:1px}
+
+/* ── ITEMS TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.items{border-collapse:collapse;width:100%;min-width:760px;font-size:11px}
+table.items th{background:#f1f5f9;border:1px solid #cbd5e1;padding:5px 3px;text-align:center;font-size:10px;line-height:1.3}
+table.items td{border:1px solid #e2e8f0;padding:2px 3px;vertical-align:middle}
+table.items td input,table.items td select{border:1px solid #e2e8f0;border-radius:4px;padding:3px 4px;font-size:11px}
+.td-amt{text-align:right;font-weight:600;color:#1e40af;white-space:nowrap;padding:0 5px!important}
+.td-del{text-align:center}
+.del-btn{background:none;border:none;color:#f87171;font-size:17px;cursor:pointer;font-weight:900;line-height:1;padding:2px}
+.del-btn:hover{color:#dc2626}
+.add-btn{background:none;border:1px dashed #60a5fa;color:#2563eb;border-radius:6px;padding:5px 14px;font-size:11px;cursor:pointer;margin-top:6px;font-family:inherit}
+.add-btn:hover{background:#eff6ff}
+
+.totals-wrap{display:flex;justify-content:flex-end;margin-top:12px}
+.totals-box{width:220px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;font-size:11px}
+.tot-row{display:flex;justify-content:space-between;padding:6px 12px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.tot-row:last-child{font-weight:700;font-size:13px;background:#fff;color:#1d4ed8;border-bottom:none}
+
+.stamp-box{border:1px dashed #dc2626;border-radius:6px;padding:6px 8px;background:#fef2f2;text-align:center;display:inline-block}
+.stamp-box img{width:60px;height:60px;object-fit:contain;display:block}
+.stamp-box span{font-size:9px;color:#dc2626;display:block;margin-top:2px}
+.info-row{display:flex;align-items:flex-start;gap:12px}
+
+/* ── PREVIEW OVERLAY ── */
+#preview-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:0;
+}
+#preview-overlay.show{display:block}
+#preview-wrap{
+  background:#f3f4f6;min-height:100%;
+}
+#preview-topbar{
+  background:#1e293b;padding:10px 14px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:10;
+}
+#preview-topbar span{color:#fff;font-size:13px;font-weight:600;flex:1}
+/* doc scroll container */
+#preview-scroll{overflow-x:auto;padding:20px 10px 40px;-webkit-overflow-scrolling:touch}
+/* the actual A4-like document */
+#doc-view{
+  background:#fff;
+  width:750px; /* fixed px, scrollable on mobile */
+  margin:0 auto;
+  padding:35px 32px 30px;
+  font-family:'Noto Serif JP','MS Mincho','Yu Mincho',serif;
+  font-size:10pt;color:#000;
+  box-shadow:0 4px 24px rgba(0,0,0,.18);
+}
+
+/* ── PRINT ── */
+#print-area{display:none}
+@media print{
+  body{background:#fff}
+  #topbar,#edit-panel,#preview-overlay,#email-bar{display:none!important}
+  #print-area{
+    display:block!important;
+    width:210mm;min-height:297mm;
+    padding:12mm 11mm 10mm 13mm;
+    font-family:'Noto Serif JP','MS Mincho','Yu Mincho',serif;
+    font-size:10pt;color:#000;
+  }
+}
+
+@media print {
+  img[alt="印鑑"] {
+    width: 21.5mm !important;
+    height: 21.5mm !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div id="topbar-title"><div class="badge">請</div>請求書作成 — Hearts House</div>
+  <div id="topbar-btns">
+    <button class="btn btn-slate" onclick="openPreview()">👁 プレビュー</button>
+    <button class="btn btn-blue"  onclick="doPrint()">🖨️ 印刷・PDF</button>
+    <button class="btn btn-green" onclick="toggleEmail()">✉️ メール</button>
+    <button class="btn" onclick="resetAll()" style="background:#dc2626;color:#fff">🗑️ リセット</button>
+    <button class="btn btn-sm" onclick="toggleHankoTool()" style="background:#7c3aed;color:#fff">🔴 印鑑透過</button>
+  </div>
+</div>
+<div id="email-bar">
+  <div style="width:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+    <label style="font-size:11px;color:#166534;white-space:nowrap;font-weight:600">送信先メール：</label>
+    <input id="email-to" type="email" placeholder="例：suzuhome@example.com"
+      style="flex:1;min-width:200px;max-width:340px;border:1px solid #86efac;border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit">
+    <button class="btn btn-green btn-sm" onclick="sendMail()" style="white-space:nowrap">✉️ Gmailで送信</button>
+    <button class="btn" onclick="openContacts()"
+      style="background:#0ea5e9;color:#fff;white-space:nowrap;padding:5px 12px;font-size:12px">📋 連絡先から選ぶ</button>
+  </div>
+  <div style="width:100%;font-size:10px;color:#4ade80;margin-top:2px">
+    ※ Gmailアプリ または 標準メールアプリが起動します
+  </div>
+</div>
+
+<!-- ── 印鑑透過パネル ── -->
+<div id="hanko-panel">
+  <div style="font-size:12px;font-weight:700;color:#dc2626">🔴 印鑑透過ツール — 写真の印鑑を透過PNG化</div>
+  <div class="hanko-row">
+    <div class="hanko-dz" id="hanko-dz" onclick="document.getElementById('hanko-file').click()">
+      クリックまたはドロップで<br><strong>印鑑画像をアップロード</strong>
+      <input type="file" id="hanko-file" accept="image/*" style="display:none" onchange="hankoLoad(this.files[0])">
+    </div>
+    <div class="hanko-canvas-wrap" id="hanko-out-wrap"><canvas id="hanko-out-canvas"></canvas></div>
+  </div>
+  <div id="hanko-settings" style="display:none;flex-direction:column;gap:8px">
+    <div class="hanko-row">
+      <span style="font-size:11px;font-weight:600">インク色：</span>
+      <select id="hanko-color" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid #ddd">
+        <option value="red">赤（朱肉）</option>
+        <option value="black">黒</option>
+        <option value="blue">青</option>
+        <option value="custom">カスタム</option>
+      </select>
+      <input type="color" id="hanko-custom-color" value="#c0392b" style="display:none;width:32px;height:28px;border:none;cursor:pointer">
+    </div>
+    <div class="hanko-range-row">
+      <span style="font-size:11px;min-width:60px">許容値：<b id="hanko-tol-val">60</b></span>
+      <input type="range" id="hanko-tol" min="10" max="180" value="60">
+    </div>
+    <div class="hanko-range-row">
+      <span style="font-size:11px;min-width:60px">ぼかし：<b id="hanko-feather-val">2</b></span>
+      <input type="range" id="hanko-feather" min="0" max="10" value="2">
+    </div>
+    <div class="hanko-row">
+      <button class="btn btn-sm" style="background:#dc2626;color:#fff" onclick="hankoProcess()">🔴 透過処理を実行</button>
+      <button class="btn btn-sm btn-blue" id="hanko-dl-btn" style="display:none" onclick="hankoDl()">⬇ PNGダウンロード</button>
+      <button class="btn btn-sm" id="hanko-apply-btn" style="display:none;background:#7c3aed;color:#fff" onclick="hankoApply()">✅ 印鑑として適用</button>
+    </div>
+    <div id="hanko-status" style="font-size:11px;color:#666"></div>
+  </div>
+</div>
+
+
+
+<!-- EDIT PANEL -->
+<div id="edit-panel">
+
+  <!-- 請求書番号・日付 -->
+  <div class="card">
+    <div class="card-title">請求書情報</div>
+    <div class="flex-row">
+      <div class="col"><label class="lbl">No.</label><input id="inv-no" placeholder="2026-001"></div>
+      <div class="col"><label class="lbl">発行日</label><input id="inv-date" type="date"></div>
+      <div class="col"><label class="lbl">新規行の消費税デフォルト</label>
+        <select id="def-tax"><option value="込">税込</option><option value="別">税別</option></select>
+      </div>
+      <div class="col" style="display:flex;align-items:flex-end;padding-bottom:4px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="show-stamp" checked style="width:15px;height:15px"> 印鑑を表示する
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 発行者 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">発行者情報（自社）</div>
+      <span id="btn-issuer" class="edit-link" onclick="toggleSection('issuer')">✏️ 編集</span>
+    </div>
+    <div id="issuer-view">
+      <div class="info-row">
+        <div class="info-display" style="flex:1">
+          <div class="info-name" id="v-iss-company"></div>
+          <div>〒<span id="v-iss-zip"></span>　<span id="v-iss-address"></span></div>
+          <div>TEL：<span id="v-iss-tel"></span>　FAX：<span id="v-iss-fax"></span></div>
+          <div>MAIL：<span id="v-iss-mail"></span></div>
+          <div>T番号：T<span id="v-iss-tnum"></span></div>
+        </div>
+        <div class="stamp-box" id="stamp-preview-box" style="display:none">
+          <img id="stamp-img-preview" src="" alt="印鑑" style="width:81px;height:81px;object-fit:contain;flex-shrink:0;display:block;margin-top:4px;image-rendering:crisp-edges;">
+          <span>印鑑プレビュー</span>
+        </div>
+        <div style="margin-top:6px;background:#fff8f8;border:1px solid #fca5a5;border-radius:8px;padding:8px 10px">
+          <div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:6px">&#128308; 印鑑を自動生成</div>
+          <div class="flex-row" style="gap:6px;margin-bottom:6px">
+            <div class="col2">
+              <label class="lbl">名字（漢字）</label>
+              <input id="stamp-name" placeholder="例：田中" style="font-size:12px" oninput="previewStamp()">
+            </div>
+            <div class="col">
+              <label class="lbl">スタイル</label>
+              <select id="stamp-style" onchange="previewStamp()" style="font-size:11px">
+                <option value="insho">印相体</option>
+                <option value="tensho">篆書体</option>
+                <option value="kointo">古印体</option>
+                <option value="kaisho">楷書体</option>
+                <option value="gyosho">行書体</option>
+                <option value="reisho">隷書体</option>
+              </select>
+            </div>
+          </div>
+          <canvas id="stamp-canvas" width="90" height="90" style="display:none"></canvas>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn btn-blue btn-sm" onclick="applyGeneratedStamp()">&#10003; 生成して適用</button>
+          </div>
+        </div>
+        <div style="margin-top:6px">
+          <label class="lbl">印鑑画像をアップロード（PNG/JPG）</label>
+          <input type="file" id="stamp-file" accept="image/*" style="font-size:11px;padding:3px 0" onchange="loadStampFile(this)">
+          <button class="btn btn-slate btn-sm" style="margin-top:4px" onclick="clearStamp()">&#128465; 印鑑クリア</button>
+        </div>
+      </div>
+    </div>
+    <div id="issuer-edit" style="display:none;margin-top:10px">
+      <div class="flex-row">
+        <div class="col2"><label class="lbl">会社名</label><input id="iss-company" value="" oninput="syncV('iss','company')"></div>
+        <div class="col"><label class="lbl">郵便番号</label><input id="iss-zip" value="" oninput="syncV('iss','zip')"></div>
+        <div class="col2"><label class="lbl">住所</label><input id="iss-address" value="" oninput="syncV('iss','address')"></div>
+        <div class="col"><label class="lbl">TEL</label><input id="iss-tel" value="" oninput="syncV('iss','tel')"></div>
+        <div class="col"><label class="lbl">FAX</label><input id="iss-fax" value="" oninput="syncV('iss','fax')"></div>
+        <div class="col2"><label class="lbl">MAIL</label><input id="iss-mail" value="" oninput="syncV('iss','mail')"></div>
+        <div class="col"><label class="lbl">T番号（Tを除く）</label><input id="iss-tnum" value="" oninput="syncV('iss','tnum')"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 請求先 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">請求先情報</div>
+      <span id="btn-client" class="edit-link" onclick="toggleSection('client')">✏️ 編集</span>
+    </div>
+    <div id="client-view">
+      <div class="info-display">
+        <div class="info-name"><span id="v-cli-company"></span>　御中</div>
+        <div>〒<span id="v-cli-zip"></span>　<span id="v-cli-address"></span></div>
+        <div>TEL：<span id="v-cli-tel"></span>　FAX：<span id="v-cli-fax"></span></div>
+        <div id="v-cli-mail-row" style="display:none">MAIL：<span id="v-cli-mail"></span></div>
+      </div>
+    </div>
+    <div id="client-edit" style="display:none;margin-top:10px">
+      <div class="flex-row">
+        <div class="col2"><label class="lbl">会社名</label><input id="cli-company" value="" oninput="syncV('cli','company')"></div>
+        <div class="col"><label class="lbl">郵便番号</label><input id="cli-zip" value="" oninput="syncV('cli','zip')"></div>
+        <div class="col2"><label class="lbl">住所</label><input id="cli-address" value="" oninput="syncV('cli','address')"></div>
+        <div class="col"><label class="lbl">TEL</label><input id="cli-tel" value="" oninput="syncV('cli','tel')"></div>
+        <div class="col"><label class="lbl">FAX</label><input id="cli-fax" value="" oninput="syncV('cli','fax')"></div>
+        <div class="col2"><label class="lbl">MAIL</label><input id="cli-mail" value="" oninput="syncV('cli','mail')"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 明細 -->
+  <div class="card">
+    <div class="card-title">工事明細</div>
+    <div class="tbl-wrap">
+      <table class="items">
+        <thead><tr>
+          <th style="width:8%">工事番号</th>
+          <th style="width:20%">工　事　名<br><small style="font-weight:normal">(号地等まで詳しく記載願います)</small></th>
+          <th style="width:7%">担当監督</th>
+          <th style="width:20%">工事内容<br><small style="font-weight:normal">(出来高・追加PO代・上棟・アフター等)</small></th>
+          <th style="width:10%">単価</th>
+          <th style="width:6%">数量</th>
+          <th style="width:8%">消費税</th>
+          <th style="width:13%">金額</th>
+          <th style="width:5%">-</th>
+        </tr></thead>
+        <tbody id="items-body"></tbody>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addRow()">＋ 行を追加</button>
+    <div class="totals-wrap">
+      <div class="totals-box">
+        <div class="tot-row"><span>小計（税抜）</span><span id="t-net">¥0</span></div>
+        <div class="tot-row"><span>消費税（10%）</span><span id="t-tax">¥0</span></div>
+        <div class="tot-row"><span>合計（税込）</span><span id="t-total">¥0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 振込先 -->
+  <div class="card">
+    <div class="card-title">振込先情報</div>
+    <div class="flex-row">
+      <div class="col"><label class="lbl">銀行名</label><input id="bank-bank" placeholder="〇〇銀行"></div>
+      <div class="col"><label class="lbl">支店名</label><input id="bank-branch" placeholder="〇〇支店"></div>
+      <div class="col"><label class="lbl">口座種別</label><select id="bank-type"><option>普通</option><option>当座</option></select></div>
+      <div class="col"><label class="lbl">口座番号</label><input id="bank-num" placeholder="1234567"></div>
+      <div class="col2"><label class="lbl">名義（カナ）</label><input id="bank-holder" placeholder="カブシキガイシャ ハーツハウス"></div>
+    </div>
+  </div>
+
+  <!-- 備考 -->
+  <div class="card">
+    <div class="card-title">備考</div>
+    <textarea id="notes" rows="3" placeholder="備考・特記事項"></textarea>
+  </div>
+</div>
+
+<!-- PREVIEW OVERLAY -->
+<div id="preview-overlay">
+  <div id="preview-wrap">
+    <div id="preview-topbar">
+      <span>プレビュー</span>
+      <button class="btn btn-slate btn-sm" onclick="closePreview()">✕ 閉じる</button>
+      <button class="btn btn-blue  btn-sm" onclick="doPrint()">🖨️ 印刷・PDF</button>
+    </div>
+    <div id="preview-scroll">
+      <div id="doc-view"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area"></div>
+
+<script>
+const STAMP = "";
+const TAX = 0.10;
+let uid = 0, rows = [];
+
+const fmt  = n => (isNaN(n)||n==="")?""  : Number(n).toLocaleString("ja-JP");
+const parse= s => parseFloat(String(s||"").replace(/,/g,""))||0;
+
+function calcRow(r){
+  // 数量が空または0の場合は1として計算（単価入力のみでも反映）
+  const up  = parse(r.up);
+  const qty = r.qty===""||r.qty===undefined ? 1 : parse(r.qty);
+  const b   = up * qty;
+  if(r.tax==="別") return {net:b, tax:Math.round(b*TAX), total:Math.round(b*(1+TAX))};
+  const t=Math.round(b*TAX/(1+TAX)); return {net:Math.round(b-t),tax:t,total:Math.round(b)};
+}
+function totals(){
+  return rows.reduce((a,r)=>{const c=calcRow(r);return{net:a.net+c.net,tax:a.tax+c.tax,total:a.total+c.total}},{net:0,tax:0,total:0});
+}
+
+function addRow(){
+  const t=document.getElementById("def-tax").value;
+  rows.push({id:++uid,jn:"",name:"",sup:"",cont:"",up:"",qty:"1",tax:t});
+  renderRows();
+}
+function removeRow(id){rows=rows.filter(r=>r.id!==id);renderRows();}
+function updRow(id,k,v){
+  const r=rows.find(r=>r.id===id);
+  if(r){
+    r[k]=v;
+    // 行金額セルをその場で更新（画面ちらつき防止）
+    const {total}=calcRow(r);
+    const amtCell=document.getElementById("amt-"+id);
+    if(amtCell) amtCell.textContent=total?"¥"+fmt(total):"";
+    renderTotals();
+  }
+}
+function renderRows(){
+  document.getElementById("items-body").innerHTML=rows.map(r=>{
+    const {total}=calcRow(r);
+    return`<tr>
+      <td><input value="${esc(r.jn)}"   oninput="updRow(${r.id},'jn',this.value)"></td>
+      <td><input value="${esc(r.name)}" oninput="updRow(${r.id},'name',this.value)"></td>
+      <td><input value="${esc(r.sup)}"  oninput="updRow(${r.id},'sup',this.value)"></td>
+      <td><input value="${esc(r.cont)}" oninput="updRow(${r.id},'cont',this.value)"></td>
+      <td><input type="number" value="${r.up}"  oninput="updRow(${r.id},'up',this.value)"  style="text-align:right"  placeholder="0"></td>
+      <td><input type="number" value="${r.qty}" oninput="updRow(${r.id},'qty',this.value)" style="text-align:center" placeholder="1"></td>
+      <td><select onchange="updRow(${r.id},'tax',this.value)">
+        <option${r.tax==="込"?" selected":""} value="込">税込</option>
+        <option${r.tax==="別"?" selected":""} value="別">税別</option>
+      </select></td>
+      <td class="td-amt" id="amt-${r.id}">${total?"¥"+fmt(total):""}</td>
+      <td class="td-del"><button class="del-btn" onclick="removeRow(${r.id})">×</button></td>
+    </tr>`;
+  }).join("");
+  renderTotals();
+}
+function renderTotals(){
+  const t=totals();
+  document.getElementById("t-net").textContent   ="¥"+fmt(t.net);
+  document.getElementById("t-tax").textContent   ="¥"+fmt(t.tax);
+  document.getElementById("t-total").textContent ="¥"+fmt(t.total);
+}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
+function toggleSection(who){
+  const v=document.getElementById(who+"-view");
+  const e=document.getElementById(who+"-edit");
+  const btn=document.getElementById("btn-"+who);
+  const opening=e.style.display===""||e.style.display==="none";
+  e.style.display=opening?"block":"none";
+  v.style.display=opening?"none":"block";
+  if(btn) btn.textContent=opening?"✓ 保存して閉じる":"✏️ 編集";
+}
+function syncV(pfx,key){
+  const val=document.getElementById(pfx+"-"+key).value;
+  const el=document.getElementById("v-"+pfx+"-"+key);
+  if(el) el.textContent=val;
+  if(pfx==="cli"&&key==="mail"){
+    document.getElementById("v-cli-mail-row").style.display=val?"":"none";
+  }
+}
+
+function getIss(){return{company:V("iss-company"),zip:V("iss-zip"),address:V("iss-address"),tel:V("iss-tel"),fax:V("iss-fax"),mail:V("iss-mail"),tnum:V("iss-tnum")};}
+function getCli(){return{company:V("cli-company"),zip:V("cli-zip"),address:V("cli-address"),tel:V("cli-tel"),fax:V("cli-fax"),mail:V("cli-mail")};}
+function getBank(){return{bank:V("bank-bank"),branch:V("bank-branch"),type:V("bank-type"),num:V("bank-num"),holder:V("bank-holder")};}
+function V(id){return(document.getElementById(id)||{}).value||"";}
+
+/* ─── BUILD DOCUMENT HTML ─── */
+function buildDoc(){
+  const iss=getIss(), cli=getCli(), bank=getBank();
+  const notes=V("notes"), no=V("inv-no"), dateVal=V("inv-date");
+  const showStamp=document.getElementById("show-stamp").checked;
+  const tot=totals();
+
+  let dateStr="";
+  if(dateVal){const d=new Date(dateVal);dateStr=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;}
+
+  const TH=`border:1px solid #555;padding:3px 3px;text-align:center;background:#e0e0e0;font-size:8.5pt;line-height:1.3;font-weight:bold`;
+  const TD=`border:1px solid #777;padding:2px 3px;vertical-align:middle;font-size:8.5pt`;
+  const EMPTY=Math.max(0,13-rows.length);
+
+  const rowsHTML=rows.map(r=>{
+    const{total}=calcRow(r);
+    return`<tr style="height:9mm">
+      <td style="${TD};text-align:center">${esc(r.jn)}</td>
+      <td style="${TD}">${esc(r.name)}</td>
+      <td style="${TD};text-align:center">${esc(r.sup)}</td>
+      <td style="${TD}">${esc(r.cont)}</td>
+      <td style="${TD};text-align:right">${r.up?"¥"+fmt(parse(r.up)):""}</td>
+      <td style="${TD};text-align:center">${r.qty}</td>
+      <td style="${TD};text-align:center;font-size:7.5pt">${r.tax==="別"?"税別":"税込"}</td>
+      <td style="${TD};text-align:right">${total?"¥"+fmt(total):""}</td>
+    </tr>`;
+  }).join("")+Array(EMPTY).fill(`<tr style="height:9mm">${Array(8).fill(`<td style="${TD}"></td>`).join("")}</tr>`).join("");
+
+  // stamp: 印鑑を紙に捺印したように（mix-blend-mode:multiply で紙に溶け込む）
+  const stampData = window._stampData || "";
+  const stampW = window._stampW || 81;
+  const stampH = window._stampH || 81;
+  const stampHTML = showStamp && stampData ? `
+    <img src="${stampData}" alt="印鑑" style="width:${stampW}px;height:${stampH}px;object-fit:contain;display:block;flex-shrink:0;image-rendering:crisp-edges;mix-blend-mode:multiply;margin-top:2mm;">
+  ` : "";
+
+  const bankHTML=(bank.bank||bank.branch||bank.num)?`
+    <div style="font-size:8pt;line-height:1.9">
+      <div style="font-weight:bold;margin-bottom:1mm">■振込先</div>
+      ${bank.bank||bank.branch?`<div>${bank.bank?bank.bank+"銀行":""}${bank.branch?"　"+bank.branch+"支店":""}</div>`:""}
+      ${bank.type||bank.num?`<div>${bank.type}　口座番号：${bank.num}</div>`:""}
+      ${bank.holder?`<div>名義（カナ表記）：${bank.holder}</div>`:""}
+    </div>`:`<div></div>`;
+
+  return`
+<div style="width:100%;font-family:'Noto Serif JP','MS Mincho','Yu Mincho',serif;font-size:10pt;color:#000;background:#fff;line-height:1.4">
+
+  <!-- ① タイトル行 -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5mm">
+    <div style="width:20mm"></div>
+    <div style="text-align:center">
+      <div style="font-size:17pt;font-weight:bold;letter-spacing:.45em;
+        border-bottom:2px solid #000;padding-bottom:1.5mm;display:inline-block">
+        請　求　書
+      </div>
+    </div>
+    <div style="text-align:right;font-size:9pt;line-height:2">
+      <div>No.&thinsp;<span style="display:inline-block;min-width:28mm;border-bottom:1px solid #000;padding-left:2mm">${no}</span></div>
+      <div>${dateStr||"　　　年　　月　　日"}</div>
+    </div>
+  </div>
+
+  <!-- ② 請求先 左 / 発行者 右 -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3mm">
+    <!-- 請求先 -->
+    <div style="width:52%">
+      <div style="font-size:12pt;font-weight:bold;margin-bottom:1mm">${esc(cli.company)}　御中</div>
+      <div style="font-size:8pt;line-height:1.75">
+        ${cli.zip?`<div>〒${cli.zip}</div>`:""}
+        ${cli.address?`<div>${esc(cli.address)}</div>`:""}
+        ${cli.tel?`<div>TEL：${cli.tel}${cli.fax?"　FAX："+cli.fax:""}</div>`:""}
+        ${cli.mail?`<div>MAIL：${cli.mail}</div>`:""}
+      </div>
+    </div>
+    <!-- 発行者 -->
+    <div style="width:46%">
+      <div style="display:flex;justify-content:flex-end;align-items:flex-end;gap:6px">
+        <div style="font-size:8pt;line-height:1.8;text-align:right">
+          <div style="font-weight:bold;font-size:10pt">${esc(iss.company)}</div>
+          <div>〒${iss.zip}</div>
+          <div>${esc(iss.address)}</div>
+          <div>TEL：${iss.tel}${iss.fax?"　FAX："+iss.fax:""}</div>
+          ${iss.mail?`<div>MAIL：${iss.mail}</div>`:""}
+          ${iss.tnum?`<div>T番号：T${iss.tnum.replace(/^T/,"")}</div>`:""}
+        </div>
+        ${stampHTML}
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:9pt;margin-bottom:3mm">下記のとおりご請求申し上げます。</div>
+
+  <!-- ③ 請求金額ボックス -->
+  <table style="border-collapse:collapse;margin-bottom:3mm">
+    <tr>
+      <td style="border:2px solid #000;padding:2.5mm 5mm;font-weight:bold;font-size:10.5pt;background:#efefef;white-space:nowrap">請求金額（税込）</td>
+      <td style="border:2px solid #000;padding:2.5mm 8mm;font-size:13pt;font-weight:bold;min-width:52mm">¥${fmt(tot.total)}</td>
+    </tr>
+  </table>
+
+  <!-- ④ 明細テーブル -->
+  <table style="border-collapse:collapse;width:100%;margin-bottom:3mm">
+    <tr>
+      <th style="${TH};width:8%">工事番号</th>
+      <th style="${TH};width:21%">工　事　名<br><span style="font-weight:normal;font-size:7pt">(号地等まで詳しく記載願います)</span></th>
+      <th style="${TH};width:7%">担当<br>監督</th>
+      <th style="${TH};width:21%">工事内容<br><span style="font-weight:normal;font-size:7pt">(出来高・追加PO代・上棟・アフター等)</span></th>
+      <th style="${TH};width:11%">単　価</th>
+      <th style="${TH};width:7%">数量<br><span style="font-weight:normal;font-size:7pt">(人工等)</span></th>
+      <th style="${TH};width:8%">消費税</th>
+      <th style="${TH};width:17%">金　額</th>
+    </tr>
+    ${rowsHTML}
+  </table>
+
+  <!-- ⑤ 振込先 + 小計ボックス -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4mm">
+    ${bankHTML}
+    <table style="border-collapse:collapse;font-size:9pt;min-width:76mm">
+      <tr>
+        <td style="border:1px solid #777;padding:1.5mm 5mm;background:#efefef;text-align:right;font-weight:bold;white-space:nowrap">小　計</td>
+        <td style="border:1px solid #777;padding:1.5mm 5mm;text-align:right;min-width:30mm">${fmt(tot.net)}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #777;padding:1.5mm 5mm;background:#efefef;text-align:right;font-weight:bold">内消費税（10%）</td>
+        <td style="border:1px solid #777;padding:1.5mm 5mm;text-align:right">${fmt(tot.tax)}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #777;padding:2mm 5mm;background:#e0e0e0;text-align:right;font-weight:bold">合　計</td>
+        <td style="border:1px solid #777;padding:2mm 5mm;text-align:right;font-weight:bold">${fmt(tot.total)}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ⑥ 備考 -->
+  <div style="border:1px solid #777;page-break-inside:avoid">
+    <div style="border-bottom:1px solid #777;padding:1.5mm 3mm;font-size:9pt;font-weight:bold;background:#efefef">備　考</div>
+    <div style="min-height:20mm;padding:3mm;font-size:8.5pt;white-space:pre-wrap;overflow:visible">${esc(notes)}</div>
+  </div>
+
+</div>`;
+}
+
+/* ─── PREVIEW ─── */
+function openPreview(){
+  document.getElementById("doc-view").innerHTML=buildDoc();
+  document.getElementById("preview-overlay").classList.add("show");
+  document.getElementById("preview-overlay").scrollTop=0;
+}
+function closePreview(){
+  document.getElementById("preview-overlay").classList.remove("show");
+}
+
+/* ─── PRINT ─── */
+function doPrint(){
+  const docHTML = buildDoc();
+  // 元のページURLを保存（戻るボタン用）
+  const originURL = location.href;
+
+  const css = [
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    'body{background:#fff;font-family:"MS Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-size:10pt;color:#000}',
+    '#bar{position:fixed;top:0;left:0;right:0;background:#1e293b;padding:10px 14px;',
+    'display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:9999;',
+    'box-shadow:0 2px 8px rgba(0,0,0,.4)}',
+    '.pb{padding:10px 22px;border:none;border-radius:8px;cursor:pointer;',
+    'font-size:15px;font-weight:700;font-family:inherit;-webkit-tap-highlight-color:transparent}',
+    '.pb-blue{background:#2563eb;color:#fff}.pb-gray{background:#64748b;color:#fff}',
+    '.hint{color:#94a3b8;font-size:11px;flex:1}',
+    '#wrap{padding:64px 6px 40px;background:#e5e7eb;min-height:100vh}',
+    '#doc{background:#fff;max-width:794px;margin:0 auto;padding:32px 28px 28px;',
+    'box-shadow:0 2px 16px rgba(0,0,0,.18)}',
+    '@media print{',
+    '@page{size:A4 portrait;margin:10mm 11mm 10mm 13mm}',
+    'html,body{height:auto!important;overflow:visible!important}',
+    '#bar{display:none!important}',
+    '#wrap{padding:0!important;background:#fff!important;min-height:auto!important}',
+    '#doc{box-shadow:none!important;max-width:none!important;padding:0!important;margin:0!important;width:auto!important;height:auto!important;overflow:visible!important}',
+    'img[alt="印鑑"]{width:21.5mm!important;height:21.5mm!important}',
+    '}'
+  ].join('');
+
+  const fullHTML = '<!DOCTYPE html><html lang="ja"><head>'
+    + '<meta charset="UTF-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>請求書 印刷用</title>'
+    + '<style>' + css + '</style>'
+    + '</head><body>'
+    + '<div id="bar">'
+    + '<button class="pb pb-blue" id="printBtn" onclick="triggerPrint()">🖨️ 印刷 / PDF保存</button>'
+    + '<button class="pb pb-gray" onclick="location.href=decodeURIComponent(document.getElementById(\'_origin\').value)">← 編集に戻る</button>'
+    + '<span class="hint">印刷画面で「PDFに保存」を選択</span>'
+    + '</div>'
+    + '<input type="hidden" id="_origin" value="' + encodeURIComponent(originURL) + '">'
+    + '<div id="wrap"><div id="doc">' + docHTML + '</div></div>'
+    + '<script>'
+    + 'function triggerPrint(){'
+    + '  var btn=document.getElementById("printBtn");'
+    + '  btn.textContent="処理中...";btn.disabled=true;'
+    + '  setTimeout(function(){'
+    + '    window.print();'
+    + '    setTimeout(function(){btn.textContent="🖨️ 印刷 / PDF保存";btn.disabled=false;},2000);'
+    + '  },300);'
+    + '}'
+    + '</scr'+'ipt>'
+    + '</body></html>';
+
+  try {
+    const blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    location.href = url;
+  } catch(e) {
+    const enc = encodeURIComponent(fullHTML);
+    location.href = 'data:text/html;charset=utf-8,' + enc;
+  }
+}
+
+/* ─── EMAIL ─── */
+function toggleEmail(){
+  const b=document.getElementById("email-bar");
+  const opening = b.style.display==="none"||b.style.display==="";
+  b.style.display = opening ? "flex" : "none";
+  if(opening){
+    // 請求先メールをデフォルトでセット
+    const cliMail = V("cli-mail");
+    const toInput = document.getElementById("email-to");
+    if(cliMail && !toInput.value) toInput.value = cliMail;
+    setTimeout(()=>toInput.focus(), 100);
+  }
+}
+
+function buildMailBody(){
+  const iss=getIss(), cli=getCli(), tot=totals(), no=V("inv-no");
+  const dateVal=V("inv-date");
+  let dateStr="";
+  if(dateVal){const d=new Date(dateVal);dateStr=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;}
+  return `${cli.company} 御中\n\nお世話になっております。\n${iss.company}でございます。\n\n下記のとおり請求書をお送りいたします。\nご確認のほどよろしくお願いいたします。\n\n━━━━━━━━━━━━━━━━━━\n${no?"請求書番号：No."+no+"\n":""}${dateStr?"発行日："+dateStr+"\n":""}請求金額（税込）：¥${fmt(tot.total)}\n　内消費税（10%）：¥${fmt(tot.tax)}\n━━━━━━━━━━━━━━━━━━\n\n${iss.company}\nTEL：${iss.tel}${iss.fax?"\nFAX："+iss.fax:""}${iss.mail?"\nMAIL："+iss.mail:""}`;
+}
+
+function sendMail(){
+  const to  = document.getElementById("email-to").value.trim();
+  const iss = getIss();
+  const no  = V("inv-no");
+  const sub = encodeURIComponent(`請求書${no?" No."+no:""} - ${iss.company}`);
+  const body= encodeURIComponent(buildMailBody());
+  // mailto: → Android/iOSともにGmailや標準メールアプリが起動
+  window.location.href = `mailto:${to}?subject=${sub}&body=${body}`;
+}
+
+function openContacts(){
+  // 連絡先ピッカー API（Android Chrome対応）
+  if('contacts' in navigator && 'ContactsManager' in window){
+    navigator.contacts.select(['email'],{multiple:false})
+      .then(contacts=>{
+        if(contacts && contacts.length>0 && contacts[0].email && contacts[0].email.length>0){
+          document.getElementById("email-to").value = contacts[0].email[0];
+        }
+      })
+      .catch(()=>{
+        fallbackContacts();
+      });
+  } else {
+    fallbackContacts();
+  }
+}
+
+function fallbackContacts(){
+  // 連絡先APIが使えない場合：メールアドレス入力を促す
+  const to = document.getElementById("email-to").value.trim();
+  if(!to){ alert("送信先メールアドレスを入力してから送信ボタンを押してください。\n\n※ 連絡先ピッカーはAndroid Chrome対応機能です。"); return; }
+  sendMail();
+}
+
+/* ─── SAVE / RESTORE / RESET ─── */
+const SAVE_KEY = "hh_invoice_v1";
+
+function saveState(){
+  try{
+    const state = {
+      invoiceNo: V("inv-no"),
+      issueDate: V("inv-date"),
+      defTax:    V("def-tax"),
+      showStamp: document.getElementById("show-stamp").checked,
+      issuer:{
+        company:V("iss-company"), zip:V("iss-zip"), address:V("iss-address"),
+        tel:V("iss-tel"), fax:V("iss-fax"), mail:V("iss-mail"), tnum:V("iss-tnum")
+      },
+      client:{
+        company:V("cli-company"), zip:V("cli-zip"), address:V("cli-address"),
+        tel:V("cli-tel"), fax:V("cli-fax"), mail:V("cli-mail")
+      },
+      bank:{
+        bank:V("bank-bank"), branch:V("bank-branch"), type:V("bank-type"),
+        num:V("bank-num"), holder:V("bank-holder")
+      },
+      notes: V("notes"),
+      rows: rows.map(r=>({...r})),
+      stampData: window._stampData || ""
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch(e){ console.warn("save failed",e); }
+}
+
+function restoreState(){
+  try{
+    const saved = localStorage.getItem(SAVE_KEY);
+    if(!saved) return false;
+    const s = JSON.parse(saved);
+    // 請求書情報
+    if(s.invoiceNo!==undefined) document.getElementById("inv-no").value = s.invoiceNo;
+    if(s.issueDate!==undefined) document.getElementById("inv-date").value = s.issueDate;
+    if(s.defTax!==undefined)    document.getElementById("def-tax").value = s.defTax;
+    if(s.showStamp!==undefined) document.getElementById("show-stamp").checked = s.showStamp;
+    // 発行者
+    if(s.issuer){
+      ["company","zip","address","tel","fax","mail","tnum"].forEach(k=>{
+        const el=document.getElementById("iss-"+k);
+        if(el && s.issuer[k]!==undefined) el.value=s.issuer[k];
+      });
+      ["company","zip","address","tel","fax","mail","tnum"].forEach(k=>{
+        const vEl=document.getElementById("v-iss-"+k);
+        const inEl=document.getElementById("iss-"+k);
+        if(vEl && inEl) vEl.textContent=inEl.value;
+      });
+    }
+    // 請求先
+    if(s.client){
+      ["company","zip","address","tel","fax","mail"].forEach(k=>{
+        const el=document.getElementById("cli-"+k);
+        if(el && s.client[k]!==undefined) el.value=s.client[k];
+      });
+      ["company","zip","address","tel","fax","mail"].forEach(k=>{
+        const vEl=document.getElementById("v-cli-"+k);
+        const inEl=document.getElementById("cli-"+k);
+        if(vEl && inEl) vEl.textContent = k==="company" ? inEl.value+"　御中" : inEl.value;
+      });
+      const mailRow=document.getElementById("v-cli-mail-row");
+      if(mailRow) mailRow.style.display=s.client.mail?"":"none";
+    }
+    // 振込先
+    if(s.bank){
+      ["bank","branch","num","holder"].forEach(k=>{
+        const el=document.getElementById("bank-"+k);
+        if(el && s.bank[k]!==undefined) el.value=s.bank[k];
+      });
+      const bt=document.getElementById("bank-type");
+      if(bt && s.bank.type) bt.value=s.bank.type;
+    }
+    // 備考
+    if(s.notes!==undefined) document.getElementById("notes").value=s.notes;
+    // 明細行
+    if(s.rows && s.rows.length>0){
+      rows.length=0;
+      s.rows.forEach(r=>rows.push(r));
+      uid = Math.max(...rows.map(r=>r.id), uid);
+      renderRows();
+    }
+    // 印鑑画像
+    if(s.stampData){
+      window._stampData = s.stampData;
+      const prev = document.getElementById("stamp-img-preview");
+      const box  = document.getElementById("stamp-preview-box");
+      if(prev){ prev.src = s.stampData; }
+      if(box) box.style.display = "inline-block";
+    }
+    return true;
+  } catch(e){ console.warn("restore failed",e); return false; }
+}
+
+
+// ========== 印鑑自動生成 v4（offscreen計測＋setTransform本描画） ==========
+
+// offscreen計測: 文字塊全体bbox + 各文字の描画重心Y
+function measureTextBlock(chars, fontStr) {
+  const S = 600;
+  const n = chars.length;
+
+  // ── Step1: 全文字まとめて描画 → 全体bbox ──
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = S;
+  const ox = oc.getContext('2d');
+  ox.fillStyle = '#000';
+  ox.font = fontStr;
+  ox.textAlign = 'center';
+  ox.textBaseline = 'middle';
+
+  // 間隔は文字数に合わせて調整（余白を多めに）
+  const step = (S * 0.392) / n;
+  const startY = S / 2 - step * (n - 1) / 2;  // 常に中心揃え
+
+  const nominalY = []; // 理論Y
+  for (let i = 0; i < n; i++) {
+    const yc = startY + step * i;
+    nominalY.push(yc);
+    ox.fillText(chars[i], S / 2, yc);
+  }
+
+  const data = ox.getImageData(0, 0, S, S).data;
+
+  // 全体bbox
+  let x0=S,x1=0,y0=S,y1=0,found=false;
+  for (let y=0;y<S;y++) for (let x=0;x<S;x++) {
+    if (data[(y*S+x)*4+3]>10) {
+      if(x<x0)x0=x; if(x>x1)x1=x;
+      if(y<y0)y0=y; if(y>y1)y1=y;
+      found=true;
+    }
+  }
+  if (!found){x0=S*0.2;x1=S*0.8;y0=S*0.1;y1=S*0.9;}
+
+  // ── Step2: 各文字の実ピクセル重心Y ──
+  // 文字ごとにスライス → 各スライスの重心Y
+  const charCentersY = [];
+  for (let i = 0; i < n; i++) {
+    // スライス範囲: 理論Yの前後 step*0.6
+    const sliceY0 = Math.max(0,   Math.floor(nominalY[i] - step * 0.6));
+    const sliceY1 = Math.min(S-1, Math.ceil (nominalY[i] + step * 0.6));
+    let sumY=0, cnt=0;
+    for (let y=sliceY0; y<=sliceY1; y++) {
+      for (let x=0; x<S; x++) {
+        if (data[(y*S+x)*4+3]>10) { sumY+=y; cnt++; }
+      }
+    }
+    // ピクセル重心が取れたらそれ、なければ理論値
+    charCentersY.push(cnt > 0 ? sumY/cnt : nominalY[i]);
+  }
+
+  // 文字塊全体の重心 = ピクセルbboxの単純中点（安定）
+  const bboxCy = (y0 + y1) / 2;
+
+  return {
+    bboxW: x1-x0,
+    bboxH: y1-y0,
+    bboxCx: (x0+x1)/2,
+    bboxCy: bboxCy,
+    charCentersY: charCentersY,
+    scanCx: S/2,
+  };
+}
+
+function drawStampEllipse(ctx, name, style, W, H) {
+  ctx.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2;
+  const rx = W * 0.435, ry = H * 0.468;
+  const col = 'rgba(210,24,24,0.94)';
+  const chars = Array.from(name);
+  const n = chars.length;
+
+  // ── 二重楕円枠 ──
+  function ellipse(er, eyr, lw) {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, er, eyr, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke();
+  }
+  ellipse(rx, ry, 4.5);
+  ellipse(rx * 0.89, ry * 0.89, 2.0);
+
+  // 上下横線なし
+
+  // ── 書体パラメータ ──
+  // fitX/fitY: 文字エリアに対する占有率（1.0=ぴったり）
+  // slant: [a,b,c,d] → transform(a,b,c,d) の b,c が斜体成分
+  const P = {
+    insho:  { w:'900',  f:'"Noto Serif JP",serif',             fitX:1.05, fitY:1.08, b: 0.02, c:-0.02 },
+    tensho: { w:'bold', f:'"Noto Serif JP","Yu Mincho",serif', fitX:0.90, fitY:1.10, b: 0,    c: 0    },
+    kointo: { w:'bold', f:'"Noto Serif JP",serif',             fitX:1.00, fitY:1.05, b: 0.01, c:-0.01, blur:1.5 },
+    kaisho: { w:'bold', f:'"Noto Serif JP","Yu Mincho",serif', fitX:0.98, fitY:1.03, b: 0,    c: 0    },
+    gyosho: { w:'400',  f:'"Noto Serif JP","Yu Mincho",serif', fitX:0.96, fitY:1.05, b: 0.05, c:-0.10 },
+    reisho: { w:'bold', f:'"Noto Serif JP",serif',             fitX:1.08, fitY:0.92, b: 0,    c: 0    },
+  };
+  const p = P[style] || P.kaisho;
+
+  // ── 文字エリアのサイズ計算（上下横線の間の内枠） ──
+  const ir = ry * 0.89, ix = rx * 0.89;
+  // 横線なし → 内枠全体を文字エリアとして使う
+  const areaW = ix * 2 * 0.90;   // 内枠横幅（少し余白）
+  const areaH = ir * 2 * 0.88;   // 内枠縦幅（少し余白）
+
+  const targetW = areaW * p.fitX;
+  const targetH = areaH * p.fitY;
+
+  // ── 計測（中フォントサイズで） ──
+  // canvasサイズ(W=90)より大きなサイズで計測してからスケールダウン
+  const SCAN_FONT_SIZE = 120;
+  const fontStr = `${p.w} ${SCAN_FONT_SIZE}px ${p.f}`;
+  const m = measureTextBlock(chars, fontStr);
+
+  // ── スケール算出 ──
+  // scan空間の実サイズ → 本canvas目標サイズ
+  const scaleX = targetW / m.bboxW;
+  const scaleY = targetH / m.bboxH;
+
+  // ── 本描画 ──
+  // 戦略：ctx.save → ctx.translate(cx, cy) → ctx.transform(scaleX, b, c, scaleY, 0, 0)
+  //        → 各文字を「scan空間での文字中心 - 文字塊重心」の相対座標で描く
+  //        → ctx.restore
+  //
+  // scan空間での文字のX位置は常にscanCx（textAlign:center）
+  // dx_scan = scanCx - bboxCx  ≈ 0（ほぼ中心なので）
+  // dy_scan[i] = charCentersY[i] - bboxCy
+
+  ctx.save();
+  ctx.fillStyle = col;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = fontStr;
+
+  if (p.blur) {
+    ctx.shadowColor = col; ctx.shadowBlur = p.blur;
+    ctx.shadowOffsetX = 0.4; ctx.shadowOffsetY = 0.4;
+  }
+
+  // 本canvasの中心を原点にする
+  ctx.translate(cx, cy);
+  // scaleとslantを一発で適用
+  // transform(a, b, c, d, e, f) → [ a c ] [ scaleX   c  ]
+  //                               [ b d ]   [ b    scaleY ]
+  ctx.transform(scaleX * 0.8, p.b * scaleY, p.c * scaleX, scaleY, 0, 0);
+
+  const dxScan = m.scanCx - m.bboxCx;  // ほぼ0
+  for (let i = 0; i < n; i++) {
+    const dyScan = m.charCentersY[i] - m.bboxCy;
+    // transformが適用された座標系で描く（translateで既にcx,cyが原点）
+    ctx.fillText(chars[i], dxScan, dyScan);
+  }
+
+  ctx.restore();
+}
+
+function previewStamp() {
+
+
+
+
+  const name = document.getElementById("stamp-name").value.trim();
+  if (!name) return;
+  const style = document.getElementById("stamp-style").value;
+  const canvas = document.getElementById("stamp-canvas");
+  drawStampEllipse(canvas.getContext("2d"), name, style, 90, 90);
+  canvas.style.display = "block";
+}
+
+function applyGeneratedStamp() {
+  const name = document.getElementById("stamp-name").value.trim();
+  if (!name) { alert("名字を入力してください"); return; }
+  const style = document.getElementById("stamp-style").value;
+  const canvas = document.getElementById("stamp-canvas");
+  drawStampEllipse(canvas.getContext("2d"), name, style, 90, 90);
+  const dataURL = canvas.toDataURL("image/png");
+  window._stampData = dataURL;
+  const prev = document.getElementById("stamp-img-preview");
+  const box  = document.getElementById("stamp-preview-box");
+  if (prev) prev.src = dataURL;
+  if (box)  box.style.display = "inline-block";
+  saveState();
+}
+
+function loadStampFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    window._stampData = e.target.result;
+    const prev = document.getElementById("stamp-img-preview");
+    const box  = document.getElementById("stamp-preview-box");
+    if(prev) prev.src = window._stampData;
+    if(box)  box.style.display = "inline-block";
+    saveState();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearStamp(){
+  window._stampData = "";
+  const prev = document.getElementById("stamp-img-preview");
+  const box  = document.getElementById("stamp-preview-box");
+  const fileInput = document.getElementById("stamp-file");
+  if(prev) prev.src = "";
+  if(box)  box.style.display = "none";
+  if(fileInput) fileInput.value = "";
+  saveState();
+}
+
+function resetAll(){
+  if(!confirm("入力内容をすべてリセットしますか？この操作は元に戻せません。")) return;
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
+
+// 自動保存：入力があるたびに保存
+document.addEventListener("input",  ()=>saveState());
+document.addEventListener("change", ()=>saveState());
+
+/* ─── INIT ─── */
+const restored = restoreState();
+if(!restored){ addRow();addRow();addRow(); }
+</script>
+
+<script>
+// ── 印鑑透過ツール ──
+let hankoOrigImg = null;
+
+function toggleHankoTool() {
+  const p = document.getElementById('hanko-panel');
+  p.classList.toggle('open');
+}
+
+const hankoDz = document.getElementById('hanko-dz');
+hankoDz.addEventListener('dragover', e => { e.preventDefault(); hankoDz.classList.add('over'); });
+hankoDz.addEventListener('dragleave', () => hankoDz.classList.remove('over'));
+hankoDz.addEventListener('drop', e => {
+  e.preventDefault(); hankoDz.classList.remove('over');
+  if (e.dataTransfer.files[0]) hankoLoad(e.dataTransfer.files[0]);
+});
+
+document.getElementById('hanko-color').addEventListener('change', function() {
+  document.getElementById('hanko-custom-color').style.display = this.value === 'custom' ? 'inline-block' : 'none';
+});
+
+function setupHankoRange(id, dispId) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => document.getElementById(dispId).textContent = el.value);
+}
+setupHankoRange('hanko-tol', 'hanko-tol-val');
+setupHankoRange('hanko-feather', 'hanko-feather-val');
+
+function hankoLoad(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      hankoOrigImg = img;
+      document.getElementById('hanko-settings').style.display = 'flex';
+      document.getElementById('hanko-status').textContent = `読み込み完了 ${img.width}×${img.height}px`;
+    };
+    img.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function hankoGetTargetColor() {
+  const mode = document.getElementById('hanko-color').value;
+  if (mode === 'red')   return {r:192,g:57,b:43};
+  if (mode === 'black') return {r:30,g:20,b:20};
+  if (mode === 'blue')  return {r:30,g:60,b:160};
+  const hex = document.getElementById('hanko-custom-color').value;
+  const n = parseInt(hex.replace('#',''),16);
+  return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
+
+function hankoProcess() {
+  if (!hankoOrigImg) return;
+  document.getElementById('hanko-status').textContent = '処理中…';
+  setTimeout(() => {
+    const img = hankoOrigImg;
+    const cnv = document.createElement('canvas');
+    cnv.width = img.width; cnv.height = img.height;
+    const ctx = cnv.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const idata = ctx.getImageData(0,0,cnv.width,cnv.height);
+    const d = idata.data;
+    const tol = +document.getElementById('hanko-tol').value;
+    const feather = +document.getElementById('hanko-feather').value;
+    const target = hankoGetTargetColor();
+    const alpha = new Float32Array(cnv.width * cnv.height);
+    for (let i = 0; i < d.length; i += 4) {
+      const px = i >> 2;
+      const dr=d[i]-target.r, dg=d[i+1]-target.g, db=d[i+2]-target.b;
+      const dist = Math.sqrt(2*dr*dr+4*dg*dg+3*db*db);
+      alpha[px] = dist <= tol ? 1.0 : 0.0;
+    }
+    if (feather > 0) {
+      const tmp = new Float32Array(alpha.length);
+      const w = cnv.width, h = cnv.height;
+      for (let y=0;y<h;y++) for (let x=0;x<w;x++) {
+        let sum=0,cnt=0;
+        for (let dy=-feather;dy<=feather;dy++) for (let dx=-feather;dx<=feather;dx++) {
+          const nx=x+dx,ny=y+dy;
+          if(nx>=0&&nx<w&&ny>=0&&ny<h){sum+=alpha[ny*w+nx];cnt++;}
+        }
+        tmp[y*w+x]=sum/cnt;
+      }
+      alpha.set(tmp);
+    }
+    for (let i=0;i<d.length;i+=4) {
+      const a=alpha[i>>2];
+      d[i+3] = a < 0.01 ? 0 : Math.round(a*255);
+    }
+    ctx.putImageData(idata,0,0);
+    const out = document.getElementById('hanko-out-canvas');
+    out.width=cnv.width; out.height=cnv.height;
+    out.getContext('2d').drawImage(cnv,0,0);
+    document.getElementById('hanko-out-wrap').style.display='block';
+    document.getElementById('hanko-dl-btn').style.display='inline-block';
+    document.getElementById('hanko-apply-btn').style.display='inline-block';
+    document.getElementById('hanko-status').textContent='✅ 透過処理完了！';
+    window._hankoCanvas = cnv;
+  }, 30);
+}
+
+function hankoDl() {
+  const a = document.createElement('a');
+  a.download = 'hanko_transparent.png';
+  a.href = document.getElementById('hanko-out-canvas').toDataURL('image/png');
+  a.click();
+}
+
+function hankoApply() {
+  if (!window._hankoCanvas) return;
+  const dataURL = window._hankoCanvas.toDataURL('image/png');
+  window._stampData = dataURL;
+  const prev = document.getElementById('stamp-img-preview');
+  const box  = document.getElementById('stamp-preview-box');
+  if (prev) prev.src = dataURL;
+  if (box)  box.style.display = 'inline-block';
+  saveState();
+  document.getElementById('hanko-panel').classList.remove('open');
+  document.getElementById('hanko-status').textContent = '';
+  alert('印鑑として適用しました！');
+}
+</script>
+</body>
+</html>
